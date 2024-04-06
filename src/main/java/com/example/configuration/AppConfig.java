@@ -32,6 +32,7 @@ public class AppConfig {
         configProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
         configProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         configProps.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+        configProps.put(ProducerConfig.REQUEST_TIMEOUT_MS_CONFIG, 500);
         return new DefaultKafkaProducerFactory<>(configProps);
     }
 
