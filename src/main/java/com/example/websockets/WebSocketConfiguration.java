@@ -1,0 +1,48 @@
+package com.example.websockets;
+
+import com.example.model.SubscribeMessage;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.socket.WebSocketSession;
+import org.springframework.web.socket.config.annotation.EnableWebSocket;
+import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
+import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+@Configuration
+@EnableWebSocket
+public class WebSocketConfiguration implements WebSocketConfigurer {
+
+    private final Map<String, WebSocketSession> sessions = new ConcurrentHashMap<>();
+    private final Map<String, SubscribeMessage> sessionsSubscriptions= new ConcurrentHashMap<>();
+
+
+    @Bean("sessions")
+    public Map<String, WebSocketSession> getSessions() {
+        return sessions;
+    }
+
+    @Bean("sessionsSubscriptions")
+    public Map<String, SubscribeMessage> getSessionsSubscriptions() {
+        return sessionsSubscriptions;
+    }
+
+    @Override
+    public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
+        registry.addHandler(new TradeHandler(sessions, sessionsSubscriptions, new ObjectMapper()), "/feed/trades");
+    }
+
+    // Overriding a method which register the socket
+    // handlers into a Registry
+//    @Override
+//    public void registerWebSocketHandlers(
+//            WebSocketHandlerRegistry webSocketHandlerRegistry)
+//    {
+//        webSocketHandlerRegistry
+//                .addHandler(new TradeHandler(),"feed/trades");
+//    }
+}
