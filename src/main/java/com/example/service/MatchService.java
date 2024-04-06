@@ -10,6 +10,7 @@ import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.socket.TextMessage;
@@ -27,6 +28,7 @@ import java.util.concurrent.Executors;
 @RequiredArgsConstructor
 @Service
 @Log4j2
+@ConditionalOnProperty(prefix = "application.websockets", name = "enabled", havingValue = "true")
 public class MatchService extends TextWebSocketHandler {
 
     @Value("${coinbase.endpoint}")
@@ -65,24 +67,22 @@ public class MatchService extends TextWebSocketHandler {
         Executors.newVirtualThreadPerTaskExecutor().submit(() -> {
             log.info("Before rest call {} for tradeId {}", Thread.currentThread(), trade.getTradeId());
             tradesService.decorateTrade(trade);
-
             log.info("After rest call {} for tradeId {}", Thread.currentThread(), trade.getTradeId());
-
             tradesService.publishMessage(trade);
             log.info("After kafka publish {} for tradeId {}", Thread.currentThread(), trade.getTradeId());
         });
 
         log.info("1.2" + Thread.currentThread().getName() + " " + trade.getTradeId());
-//        sessionsSubscriptions.entrySet().stream()
-//                .filter(e -> matcher.matches(trade, e.getValue().getFilters()))
-//                .forEach(e -> {
-//                    try {
-//                        log.info("2." + Thread.currentThread().getName());
-//                        sessions.get(e.getKey()).sendMessage(new TextMessage(mappingResolver.writeTradeToString(trade)));
-//                        log.info("3." + Thread.currentThread().getName());
-//                    } catch (IOException ex) {
-//                        throw new RuntimeException(ex); //TODO
-//                    }
-//                });
+        sessionsSubscriptions.entrySet().stream()
+                .filter(e -> matcher.matches(trade, e.getValue().getFilters()))
+                .forEach(e -> {
+                    try {
+                        log.info("2." + Thread.currentThread().getName());
+                        sessions.get(e.getKey()).sendMessage(new TextMessage(mappingResolver.writeTradeToString(trade)));
+                        log.info("3." + Thread.currentThread().getName());
+                    } catch (IOException ex) {
+                        throw new RuntimeException(ex); //TODO
+                    }
+                });
     }
 }
