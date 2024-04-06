@@ -20,6 +20,8 @@ public class TradesController {
     @GetMapping("/products/{productId}/info")
     public ProductInfo getProductStats(@PathVariable String productId) {
         log.info("{} thread", Thread.currentThread());
-        return tradesService.getProductInfo(productId);
+        ProductInfo result = tradesService.getProductInfo(productId);
+        log.info("{} thread", Thread.currentThread());
+        return result;
     }
 }
