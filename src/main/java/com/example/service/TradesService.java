@@ -44,7 +44,6 @@ public class TradesService {
 
     public void publishMessage(Trade message) {
         log.info("Before kafka publishing  {}", Thread.currentThread());
-//        Executors.newVirtualThreadPerTaskExecutor().submit(() -> {
         kafkaService.sendMessage(message);
         log.info("After kafka publish {}", Thread.currentThread());
     }
