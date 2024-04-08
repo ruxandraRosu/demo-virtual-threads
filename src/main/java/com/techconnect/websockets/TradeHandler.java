@@ -1,9 +1,8 @@
-package com.example.websockets;
+package com.techconnect.websockets;
 
-import com.example.model.SubscribeMessage;
+import com.techconnect.model.SubscribeMessage;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.WebSocketMessage;

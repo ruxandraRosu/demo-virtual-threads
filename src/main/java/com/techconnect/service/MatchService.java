@@ -1,11 +1,10 @@
-package com.example.service;
+package com.techconnect.service;
 
-import com.example.model.MappingResolver;
-import com.example.model.Match;
-import com.example.model.Product;
-import com.example.model.SubscribeMessage;
-import com.example.model.response.Trade;
-import com.example.websockets.MessageMatcher;
+import com.techconnect.model.MappingResolver;
+import com.techconnect.model.Match;
+import com.techconnect.model.SubscribeMessage;
+import com.techconnect.model.response.Trade;
+import com.techconnect.websockets.MessageMatcher;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;

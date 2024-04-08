@@ -1,6 +1,6 @@
-package com.example.service;
+package com.techconnect.service;
 
-import com.example.model.response.Trade;
+import com.techconnect.model.response.Trade;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;

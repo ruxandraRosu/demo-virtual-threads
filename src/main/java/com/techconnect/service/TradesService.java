@@ -1,9 +1,9 @@
-package com.example.service;
+package com.techconnect.service;
 
-import com.example.model.Product;
-import com.example.model.ProductInfo;
-import com.example.model.Stats;
-import com.example.model.response.Trade;
+import com.techconnect.model.Product;
+import com.techconnect.model.ProductInfo;
+import com.techconnect.model.Stats;
+import com.techconnect.model.response.Trade;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

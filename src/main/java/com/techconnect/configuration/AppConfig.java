@@ -1,4 +1,4 @@
-package com.example.configuration;
+package com.techconnect.configuration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.clients.producer.ProducerConfig;
