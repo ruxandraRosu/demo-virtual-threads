@@ -75,12 +75,6 @@ public class MatchService extends TextWebSocketHandler {
                             try {
                                 log.info("2." + Thread.currentThread());
                                 sessions.get(e.getKey()).sendMessage(new TextMessage(mappingResolver.writeTradeToString(enrichedTrade)));
-                                FileOutputStream out = new FileOutputStream("deltaFilled.csv", true);
-                                out.write((trade.getGridKey()).getBytes("UTF-8"));
-                                out.write(System.getProperty("line.separator").getBytes("UTF-8"));
-                                out.flush();
-                                out.close();
-//                                log.info("3." + Thread.currentThread());
                             } catch (Exception ex) {
                                 throw new RuntimeException(ex); //TODO
                             }
