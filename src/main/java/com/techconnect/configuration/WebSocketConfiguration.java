@@ -1,7 +1,8 @@
-package com.techconnect.websockets;
+package com.techconnect.configuration;
 
-import com.techconnect.model.SubscribeMessage;
+import com.techconnect.model.request.SubscribeMessage;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.techconnect.websockets.TradeHandler;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

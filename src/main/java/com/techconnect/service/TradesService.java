@@ -1,10 +1,9 @@
 package com.techconnect.service;
 
 import com.techconnect.model.Product;
-import com.techconnect.model.ProductInfo;
+import com.techconnect.model.response.ProductInfo;
 import com.techconnect.model.Stats;
 import com.techconnect.model.response.Trade;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -17,35 +16,50 @@ public class TradesService {
 
     private RestClient restClient;
     private final KafkaService kafkaService;
-    private ObjectMapper mapper;
+    private final Product emptyProduct = new Product();
+    private final Stats emptyStats = new Stats();
 
     public Product getProduct(String productId) {
-        return restClient.get()
-                .uri("/products/" + productId)
-                .retrieve()
-                .toEntity(Product.class)
-                .getBody();
+        log.info("{} retrieving product", Thread.currentThread());
+        try {
+            return restClient.get()
+                    .uri("/products/" + productId)
+                    .retrieve()
+                    .toEntity(Product.class)
+                    .getBody();
+        } catch (Exception e) {
+            log.error("Exception retrieving product: "+ e.getMessage());
+            return emptyProduct;
+        }
     }
 
     public Stats getProductStats(String productId) {
-        log.info("Before rest call {} for productId {}", Thread.currentThread(), productId);
-        return restClient.get()
-                .uri("/products/" + productId + "/stats")
-                .retrieve()
-                .toEntity(Stats.class)
-                .getBody();
+        log.info("{} retrieving stats", Thread.currentThread());
+       try {
+           return restClient.get()
+                   .uri("/products/" + productId + "/stats")
+                   .retrieve()
+                   .toEntity(Stats.class)
+                   .getBody();
+       }
+       catch (Exception e){
+           log.error("Exception retrieving stats: "+ e.getMessage());
+           return emptyStats;
+       }
     }
 
-    public void decorateTrade(Trade trade) {
+    public Trade enrichTrade(Trade trade) {
         Product product = getProduct(trade.getGridKey());
-        trade.setBase(product.getBaseCurrency());
-        trade.setDisplayName(product.getDisplayName());
+        return trade.toBuilder()
+                .base(product.getBaseCurrency())
+                .displayName(product.getDisplayName())
+                .build();
     }
 
     public void publishMessage(Trade message) {
-        log.info("Before kafka publishing  {}", Thread.currentThread());
+        log.info("{} publishing", Thread.currentThread());
         kafkaService.sendMessage(message);
-        log.info("After kafka publish {}", Thread.currentThread());
+        log.info("{} completed publishing", Thread.currentThread());
     }
 
 
@@ -53,7 +67,5 @@ public class TradesService {
         Stats stats = getProductStats(productId);
         Product product = getProduct(productId);
         return ProductInfo.builder().product(product).stats(stats).build();
-
-
     }
 }

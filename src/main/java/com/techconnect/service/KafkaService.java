@@ -21,7 +21,6 @@ public class KafkaService {
     private KafkaTemplate<String, String> kafkaTemplate;
     private ObjectMapper mapper;
 
-
     public void sendMessage(Trade trade) {
         try {
             String message = mapper.writeValueAsString(trade);

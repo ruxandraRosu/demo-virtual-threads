@@ -1,27 +1,25 @@
 package com.techconnect.websockets;
 
-import com.techconnect.model.SubscribeMessage;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.techconnect.model.request.SubscribeMessage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.WebSocketMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.AbstractWebSocketHandler;
 
-import java.io.IOException;
 import java.util.Map;
 
 @RequiredArgsConstructor
 public class TradeHandler extends AbstractWebSocketHandler {
-    private final Map<String, WebSocketSession> sessions ;
+    private final Map<String, WebSocketSession> sessions;
     private final Map<String, SubscribeMessage> sessionsSubscriptions;
     private final ObjectMapper objectMapper;
 
     @Override
-    public void afterConnectionEstablished(WebSocketSession session) throws IOException {
+    public void afterConnectionEstablished(WebSocketSession session) {
         sessions.put(session.getId(), session);
-
     }
 
     @Override
@@ -31,7 +29,7 @@ public class TradeHandler extends AbstractWebSocketHandler {
     }
 
     @Override
-    public void handleMessage(WebSocketSession session, WebSocketMessage<?> message) throws Exception {
+    public void handleMessage(WebSocketSession session, WebSocketMessage<?> message) {
         SubscribeMessage subscribeMessage = mapStringToMessage(message.getPayload().toString());
         sessionsSubscriptions.put(session.getId(), subscribeMessage);
     }

@@ -1,6 +1,6 @@
 package com.techconnect.controller;
 
-import com.techconnect.model.ProductInfo;
+import com.techconnect.model.response.ProductInfo;
 import com.techconnect.service.TradesService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,12 +16,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class TradesController {
     private TradesService tradesService;
 
-
     @GetMapping("/products/{productId}/info")
     public ProductInfo getProductStats(@PathVariable String productId) {
-        log.info("{} thread", Thread.currentThread());
+        log.info("{} processing request", Thread.currentThread());
         ProductInfo result = tradesService.getProductInfo(productId);
-        log.info("{} thread", Thread.currentThread());
+        log.info("{} finished", Thread.currentThread());
         return result;
     }
 }
