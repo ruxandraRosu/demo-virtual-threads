@@ -17,13 +17,10 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 
 @RequiredArgsConstructor
 @Service
@@ -35,54 +32,48 @@ public class MatchService extends TextWebSocketHandler {
     private String url;
     @Value("${coinbase.matcher-message}")
     private String matcherMessage;
-    private WebSocketSession clientSession;
     private final MappingResolver mappingResolver;
     private final Map<String, WebSocketSession> sessions;
     private final Map<String, SubscribeMessage> sessionsSubscriptions;
     private final MessageMatcher matcher;
     private final TradesService tradesService;
+    private final ThreadFactory factory = Thread.ofVirtual().name("MyVirtualThread", 0L).factory();
 
     @PostConstruct
     public void init() throws ExecutionException, InterruptedException, IOException {
-        clientSession = new StandardWebSocketClient().execute(this, new WebSocketHttpHeaders(), URI.create(url)).get();
+        WebSocketSession clientSession = new StandardWebSocketClient().execute(this, new WebSocketHttpHeaders(), URI.create(url)).get();
         clientSession.sendMessage(new TextMessage(matcherMessage));
     }
 
     @Override
-    protected void handleTextMessage(WebSocketSession session, TextMessage message) throws ExecutionException, InterruptedException {
+    protected void handleTextMessage(WebSocketSession session, TextMessage message) {
         String payload = message.getPayload();
         log.info(payload);
         if (payload.contains("subscriptions"))
             return;
         handleMatchMessage(payload);
-
     }
 
     private void handleMatchMessage(String payload) {
-        try (ExecutorService executor = Executors.newVirtualThreadPerTaskExecutor()) {
-            executor.submit(() -> {
-                Match match = mappingResolver.mapStringToMatch(payload);
-                Trade trade = mappingResolver.mapMatchToTrade(match);
-                log.info("Before rest call {} for tradeId {}", Thread.currentThread(), trade.getTradeId());
-                Trade enrichedTrade = tradesService.enrichTrade(trade);
-                log.info("After rest call {} for tradeId {}", Thread.currentThread(), trade.getTradeId());
-                tradesService.publishMessage(enrichedTrade);
-                log.info("After kafka publish {} for tradeId {}", Thread.currentThread(), trade.getTradeId());
-                log.info("1.2" + Thread.currentThread().getName() + " " + trade.getTradeId());
-                sessionsSubscriptions.entrySet().stream()
-                        .filter(e -> matcher.matches(enrichedTrade, e.getValue().getFilters()))
-                        .forEach(e -> {
-                            try {
-                                log.info("2." + Thread.currentThread());
-                                sessions.get(e.getKey()).sendMessage(new TextMessage(mappingResolver.writeTradeToString(enrichedTrade)));
-                            } catch (Exception ex) {
-                                throw new RuntimeException(ex); //TODO
-                            }
-                        });
-            });
+        try (ExecutorService executor = Executors.newThreadPerTaskExecutor(factory)) {
+            Match match = mappingResolver.mapStringToMatch(payload);
+            Trade trade = mappingResolver.mapMatchToTrade(match);
+            Future<Trade> newTradeFuture = executor.submit(() -> tradesService.enrichTrade(trade));
+            final Trade enrichedTrade = newTradeFuture.get();
+            executor.submit(() -> tradesService.publishMessage(enrichedTrade)).get();
+            sessionsSubscriptions.entrySet().stream()
+                    .filter(e -> matcher.matches(enrichedTrade, e.getValue().getFilters()))
+                    .forEach(e -> pushMessageToSubscriber(e.getKey(), enrichedTrade));
+        } catch (Exception e) {
+            log.error("Unable to handle message ", e);
         }
-        log.info("1.1" + Thread.currentThread().getName());
+    }
 
-
+    private void pushMessageToSubscriber(String sessionId, Trade enrichedTrade) {
+        try {
+            sessions.get(sessionId).sendMessage(new TextMessage(mappingResolver.writeTradeToString(enrichedTrade)));
+        } catch (Exception ex) {
+            log.error("Unable to publish message to subscriber", ex);
+        }
     }
 }

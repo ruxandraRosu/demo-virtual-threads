@@ -20,7 +20,6 @@ public class TradesService {
     private final Stats emptyStats = new Stats();
 
     public Product getProduct(String productId) {
-        log.info("{} retrieving product", Thread.currentThread());
         try {
             return restClient.get()
                     .uri("/products/" + productId)
